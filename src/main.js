@@ -111,7 +111,7 @@ const TEMPLATE_DATA = [
     { "tag": "daily message", "style": "step", "lang": "zh",
       "system": "你是结构化规划师，清晰地将日常互动与任务拆解为具体行动步骤。",
       "userPrefix": "请清晰地分步说明如何完成：" }
-  ];
+];
   
 
 /* ====== ② 转成多维 Map ====== */
