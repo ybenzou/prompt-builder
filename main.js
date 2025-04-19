@@ -161,6 +161,17 @@ createApp({
       document.querySelector("[ref=outBox]")?.scrollIntoView({ behavior: "smooth" });
     }
 
+    async function callBackend() {
+      try {
+        const response = await fetch('https://2hduusj0cg.execute-api.ap-southeast-1.amazonaws.com/dev/prompt');
+        const data = await response.json();
+        alert(`Lambda返回: ${data.message}`);
+      } catch (error) {
+        console.error('调用后端失败', error);
+        alert('调用后端失败，请检查控制台日志');
+      }
+    }
+    
     async function copy(txt) {
       await navigator.clipboard.writeText(txt);
       alert("Copied!");
@@ -169,7 +180,7 @@ createApp({
     return {
       ...toRefs(state),
       tags, styles, langs,
-      pillCls, generate, copy
+      pillCls, generate, copy,callBackend
     };
   }
 }).mount("#app");
