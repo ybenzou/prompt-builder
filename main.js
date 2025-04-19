@@ -133,7 +133,7 @@ const styles = [...new Set(TEMPLATE_DATA.map(r => r.style))]
 const langs  = [...new Set(TEMPLATE_DATA.map(r => r.lang))]
                .map(v => ({ label: v === "en" ? "English" : "中文", value: v }));
 
-/* ====== Vue App ====== */
+/* ====== ④ Vue App ====== */
 createApp({
   setup() {
     const state = reactive({
@@ -141,8 +141,7 @@ createApp({
       selectedStyle: styles[0].value,
       selectedLang: langs[0].value,
       query: "",
-      enhanced: "",
-      loading: false
+      enhanced: ""
     });
 
     function pillCls(active, color) {
@@ -152,6 +151,14 @@ createApp({
           ? `bg-${color}-600 text-white border-${color}-600`
           : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'
       ];
+    }
+
+    async function generate() {
+      const tpl = templates[state.selectedTag][state.selectedStyle][state.selectedLang];
+      state.enhanced =
+        `[system]\n${tpl.system}\n\n[user]\n${tpl.userPrefix}\n${state.query}`;
+      await nextTick();
+      document.querySelector("[ref=outBox]")?.scrollIntoView({ behavior: "smooth" });
     }
 
     async function fetchPromptGenerated() {
@@ -212,7 +219,7 @@ createApp({
         document.querySelector("[ref=outBox]")?.scrollIntoView({ behavior: "smooth" });
       }
     }
-
+    
     async function copy(txt) {
       await navigator.clipboard.writeText(txt);
       alert("Copied!");
@@ -221,10 +228,7 @@ createApp({
     return {
       ...toRefs(state),
       tags, styles, langs,
-      pillCls,
-      fetchPromptGenerated,
-      fetchPromptFromBackend,
-      copy
+      pillCls, generate, copy,fetchPromptGenerated,fetchPromptFromBackend
     };
   }
 }).mount("#app");
