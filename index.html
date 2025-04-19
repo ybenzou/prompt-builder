@@ -90,7 +90,7 @@
         </button>
 
           <button
-            @click="fetchPromptGenerated"
+            @click="callBackend"
             :disabled="!query.trim() || loading"
             class="w-full py-2 rounded-lg text-white bg-green-600 hover:bg-green-700 disabled:opacity-50"
           >
