@@ -88,12 +88,24 @@
         >
           Generate
         </button>
-        
-        <button
-          @click="callBackend"
-          class="mt-4 px-6 py-2 rounded-lg bg-emerald-500 text-white hover:bg-emerald-600">
-          测试后端 API
-        </button>
+
+        <div class="space-y-3">
+          <button
+            @click="fetchPromptGenerated"
+            :disabled="!query.trim() || loading"
+            class="w-full py-2 rounded-lg text-white bg-green-600 hover:bg-green-700 disabled:opacity-50"
+          >
+            {{"生成（POST /prompt）"}}
+          </button>
+
+          <button
+            @click="fetchPromptFromBackend"
+            :disabled="!query.trim() || loading"
+            class="w-full py-2 rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50"
+          >
+            {{"拉取模板（GET /gettemplate）"}}
+          </button>
+        </div>
       </aside>
 
       <!-- 右边展示栏 -->

@@ -133,7 +133,7 @@ const styles = [...new Set(TEMPLATE_DATA.map(r => r.style))]
 const langs  = [...new Set(TEMPLATE_DATA.map(r => r.lang))]
                .map(v => ({ label: v === "en" ? "English" : "中文", value: v }));
 
-/* ====== ④ Vue App ====== */
+/* ====== Vue App ====== */
 createApp({
   setup() {
     const state = reactive({
@@ -141,7 +141,8 @@ createApp({
       selectedStyle: styles[0].value,
       selectedLang: langs[0].value,
       query: "",
-      enhanced: ""
+      enhanced: "",
+      loading: false
     });
 
     function pillCls(active, color) {
@@ -153,25 +154,65 @@ createApp({
       ];
     }
 
-    async function generate() {
-      const tpl = templates[state.selectedTag][state.selectedStyle][state.selectedLang];
-      state.enhanced =
-        `[system]\n${tpl.system}\n\n[user]\n${tpl.userPrefix}\n${state.query}`;
-      await nextTick();
-      document.querySelector("[ref=outBox]")?.scrollIntoView({ behavior: "smooth" });
-    }
-
-    async function callBackend() {
+    async function fetchPromptGenerated() {
       try {
-        const response = await fetch('https://2hduusj0cg.execute-api.ap-southeast-1.amazonaws.com/dev/prompt');
-        const data = await response.json();
-        alert(`Lambda返回: ${data.message}`);
-      } catch (error) {
-        console.error('调用后端失败', error);
-        alert('调用后端失败，请检查控制台日志');
+        state.loading = true;
+        const baseURL = "https://2hduusj0cg.execute-api.ap-southeast-1.amazonaws.com/dev";
+        const url = `${baseURL}/prompt`;
+
+        const bodyData = {
+          query: state.query
+        };
+
+        const res = await fetch(url, {
+          method: "POST",
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(bodyData)
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+          state.enhanced = data.enhancedPrompt || "(No prompt returned)";
+        } else {
+          alert(`生成失败: ${data.error || "未知错误"}`);
+        }
+      } catch (err) {
+        console.error("生成失败", err);
+        alert("调用生成接口失败，请检查网络或API状态");
+      } finally {
+        state.loading = false;
+        await nextTick();
+        document.querySelector("[ref=outBox]")?.scrollIntoView({ behavior: "smooth" });
       }
     }
-    
+
+    async function fetchPromptFromBackend() {
+      try {
+        state.loading = true;
+        const baseURL = "https://2hduusj0cg.execute-api.ap-southeast-1.amazonaws.com/dev";
+        const url = `${baseURL}/gettemplate?tag=${state.selectedTag}&style=${state.selectedStyle}&lang=${state.selectedLang}`;
+
+        const res = await fetch(url);
+        const data = await res.json();
+
+        if (res.ok) {
+          const system = data.system || "";
+          const userPrefix = data.userPrefix || "";
+          state.enhanced = `[system]\n${system}\n\n[user]\n${userPrefix}\n${state.query}`;
+        } else {
+          alert(`模板拉取失败: ${data.error || "未知错误"}`);
+        }
+      } catch (err) {
+        console.error("模板拉取失败", err);
+        alert("调用模板接口失败，请检查网络或API状态");
+      } finally {
+        state.loading = false;
+        await nextTick();
+        document.querySelector("[ref=outBox]")?.scrollIntoView({ behavior: "smooth" });
+      }
+    }
+
     async function copy(txt) {
       await navigator.clipboard.writeText(txt);
       alert("Copied!");
@@ -180,7 +221,10 @@ createApp({
     return {
       ...toRefs(state),
       tags, styles, langs,
-      pillCls, generate, copy,callBackend
+      pillCls,
+      fetchPromptGenerated,
+      fetchPromptFromBackend,
+      copy
     };
   }
 }).mount("#app");
